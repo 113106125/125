@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FHIR SupplyRequest 範例</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+        label, input, button {
+            display: block;
+            margin-bottom: 10px;
+        }
+        textarea {
+            width: 100%;
+            height: 200px;
+            margin-bottom: 10px;
+        }
+    </style>
+</head>
+<body>
+    <h2>FHIR SupplyRequest 輸入介面</h2>
+
+    <form id="supplyRequestForm">
+        <label for="requester">請求者：</label>
+        <input type="text" id="requester" name="requester" required>
+
+        <label for="status">狀態：</label>
+        <select id="status" name="status">
+            <option value="draft">草稿</option>
+            <option value="active">啟用</option>
+            <option value="completed">完成</option>
+        </select>
+
+        <label for="dateRequested">請求日期：</label>
+        <input type="date" id="dateRequested" name="dateRequested" required>
+
+        <label for="itemCode">物品編碼：</label>
+        <input type="text" id="itemCode" name="itemCode" required>
+
+        <label for="quantity">數量：</label>
+        <input type="number" id="quantity" name="quantity" required>
+
+        <label for="deliveryAddress">配送地點：</label>
+        <input type="text" id="deliveryAddress" name="deliveryAddress" required>
+
+        <button type="button" onclick="generateJSON()">生成 JSON</button>
+        <button type="button" onclick="uploadToFHIR()">上傳到 FHIR 伺服器</button>
+    </form>
+
+    <h3>生成的 JSON 資料：</h3>
+    <textarea id="outputJSON" readonly></textarea>
+
+    <script>
+        let generatedSupplyRequest = null;
+
+        // 用來生成並顯示 SupplyRequest 的 JSON 資料
+        function generateJSON() {
+            // 從表單獲取輸入資料
+            const requester = document.getElementById('requester').value;
+            const status = document.getElementById('status').value;
+            const dateRequested = document.getElementById('dateRequested').value;
+            const itemCode = document.getElementById('itemCode').value;
+            const quantity = document.getElementById('quantity').value;
+            const deliveryAddress = document.getElementById('deliveryAddress').value;
+
+            // 建立 SupplyRequest 物件
+            const supplyRequest = {
+                resourceType: "SupplyRequest",
+                requester: {
+                    reference: "Practitioner/" + requester,  // 假設請求者是一個 Practitioner（醫生等）
+                    display: requester
+                },
+                status: status,
+                dateRequested: dateRequested,
+                item: {
+                    code: {
+                        text: itemCode
+                    },
+                    quantity: {
+                        value: quantity,
+                        unit: "個"
+                    }
+                },
+                deliverTo: {
+                    reference: "Location/" + deliveryAddress,  // 假設配送地點是一個 Location
+                    display: deliveryAddress
+                }
+            };
+
+            // 儲存生成的 SupplyRequest 物件
+            generatedSupplyRequest = supplyRequest;
+
+            // 將 JavaScript 物件轉換為 JSON 格式
+            const output = JSON.stringify(supplyRequest, null, 4);
+
+            // 顯示生成的 JSON 資料
+            document.getElementById('outputJSON').value = output;
+        }
+
+        // 用來將生成的 SupplyRequest 上傳到 FHIR 伺服器
+        async function uploadToFHIR() {
+            if (!generatedSupplyRequest) {
+                alert("請先生成 SupplyRequest JSON 資料！");
+                return;
+            }
+
+            const fhirServerUrl = "https://fhir.tcumi.com:58443/r5/fhir/";
+
+            try {
+                const response = await fetch(fhirServerUrl + "SupplyRequest", {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/fhir+json',
+                        'Accept': 'application/fhir+json'
+                    },
+                    body: JSON.stringify(generatedSupplyRequest)
+                });
+
+                if (!response.ok) {
+                    throw new Error(`FHIR伺服器錯誤: ${response.statusText}`);
+                }
+
+                const result = await response.json();
+                alert("FHIR SupplyRequest 上傳成功！" + JSON.stringify(result, null, 4));
+            } catch (error) {
+                alert("上傳失敗：" + error.message);
+            }
+        }
+    </script>
+</body>
+</html>
