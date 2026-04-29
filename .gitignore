@@ -1,0 +1,34 @@
+# --- 數據與結果 (Data & Results) ---
+# 忽略學生自行建立的數據資料夾
+data/
+*.txt
+*.tsv
+!example_blast_result.txt
+!requirements.txt
+
+# 忽略任何輸出的統計圖表或 Excel
+results/
+*.png
+*.xlsx
+
+# --- Python 環境相關 (Environments) ---
+# 忽略自動產生的編譯檔
+__pycache__/
+*.py[cod]
+*$py.class
+
+# 忽略虛擬環境資料夾
+.venv/
+env/
+venv/
+blast_env/
+
+# --- 編輯器相關 (IDE) ---
+# 忽略 VS Code 的個人偏好設定
+.vscode/
+
+# --- 作業系統相關 (OS) ---
+# 忽略 Mac 的隱藏檔
+.DS_Store
+# 忽略 Windows 的縮圖檔
+Thumbs.db
